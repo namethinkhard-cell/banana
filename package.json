@@ -1,0 +1,36 @@
+{
+  "name": "banana",
+  "version": "1.0.0",
+  "description": "Productivity app",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "publish": "electron-builder --publish always"
+  },
+  "devDependencies": {
+    "electron": "^26.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "dependencies": {
+    "active-win": "^8.2.1",
+    "electron-updater": "^6.6.2"
+  },
+  "build": {
+    "appId": "com.banana.app",
+    "productName": "banana",
+    "win": {
+      "target": "nsis",
+      "icon": "src/icons/logo.png"
+    },
+    "files": [
+      "**/*",
+      "src/icons/logo.png"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "namethinkhard-cell",
+      "repo": "banana"
+    }
+  }
+}

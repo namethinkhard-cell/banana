@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>banana</title>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="src/styles/typography.css">
+  <link rel="stylesheet" href="src/styles/animations.css">
+  <link rel="stylesheet" href="src/styles/darkmode.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'sans': ['GeneralSans', 'system-ui', 'sans-serif'],
+          },
+          fontWeight: {
+            'light': 300,
+            'normal': 400,
+            'medium': 500,
+            'semibold': 600,
+          },
+          spacing: {
+            'xs': '0.272em',
+            'sm': '0.618em',
+            'md': '0.786em',
+            'base': '1em',
+            'lg': '1.272em',
+            'xl': '1.618em',
+            '2xl': '2.058em',
+          },
+          lineHeight: {
+            'base': '1.618',
+            'relaxed': '1.854',
+          },
+        }
+      }
+    }
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Firebase CDN for Co-op feature -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Load dependencies first -->
+  <script type="text/babel" src="src/utils/constants.js"></script>
+  <script type="text/babel" src="src/utils/logger.js"></script>
+  <script type="text/babel" src="src/icons/Icons.jsx"></script>
+  <script type="text/babel" src="src/utils/formatters.js"></script>
+  <script type="text/babel" src="src/utils/firebaseConfig.js"></script>
+  
+  <!-- Load Sidebar component BEFORE App -->
+  <script type="text/babel" src="src/components/Sidebar.jsx"></script>
+  
+  <!-- Load components -->
+  <script type="text/babel" src="src/components/Header.jsx"></script>
+  <script type="text/babel" src="src/components/TasksPanel.jsx"></script>
+  <script type="text/babel" src="src/components/RewardsPanel.jsx"></script>
+  <script type="text/babel" src="src/components/CompletedPanel.jsx"></script>
+  <script type="text/babel" src="src/components/RedeemedPanel.jsx"></script>
+  <script type="text/babel" src="src/components/TimerPanel.jsx"></script>
+  <script type="text/babel" src="src/components/CoopPanel.jsx"></script>
+  <script type="text/babel" src="src/components/StreakPanel.jsx"></script>
+  <script type="text/babel" src="src/components/SettingsPanel.jsx"></script>
+  <script type="text/babel" src="src/components/Notification.jsx"></script>
+  <!-- DEVELOPER MODE: Color picker component - remove this line to disable -->
+  <script type="text/babel" src="src/components/ColorPicker.jsx"></script>
+
+  <!-- Load main app -->
+  <script type="text/babel" src="src/App.jsx"></script>
+</body>
+</html>

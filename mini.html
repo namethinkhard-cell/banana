@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>banana mini</title>
+  <link rel="stylesheet" href="fonts.css">
+  <style>
+    :root {
+      /* Golden ratio spacing */
+      --space-xs: 0.272em;
+      --space-sm: 0.618em;
+      --space-md: 0.786em;
+      --space-base: 1em;
+      --space-lg: 1.272em;
+
+      /* Font weights */
+      --font-regular: 400;
+      --font-medium: 500;
+      --font-semibold: 600;
+
+      /* Line heights */
+      --line-height-base: 1.618;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      -webkit-app-region: drag;
+      font-family: 'GeneralSans', system-ui, sans-serif;
+      font-weight: var(--font-regular);
+      line-height: var(--line-height-base);
+      letter-spacing: -0.011em;
+      overflow: hidden;
+      background: #18181b;
+      color: white;
+      width: 100%;
+    }
+    button, input {
+      -webkit-app-region: no-drag;
+    }
+    #container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    #timer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-sm);
+      height: 40px;
+      gap: var(--space-sm);
+    }
+    #timer-display {
+      font-family: monospace;
+      font-size: 18px;
+      font-weight: var(--font-semibold);
+      font-variant-numeric: tabular-nums;
+      flex: 1;
+      text-align: center;
+      transition: color 0.3s;
+    }
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+    }
+    #status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+    #close-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #a1a1aa;
+      padding: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+    #close-btn:hover {
+      color: #f87171;
+    }
+    #image-container {
+      width: 100%;
+      overflow: hidden;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #18181b;
+    }
+    #image-container.visible {
+      display: flex;
+    }
+    #custom-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    #coop-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #a1a1aa;
+      padding: var(--space-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+      font-size: 10px;
+      font-weight: var(--font-medium);
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    #coop-toggle.visible {
+      display: flex;
+    }
+    #coop-toggle:hover {
+      color: #fbbf24;
+    }
+    #coop-toggle svg {
+      transition: transform 0.3s;
+      transform: rotate(180deg);
+    }
+    #coop-toggle.expanded svg {
+      transform: rotate(0deg);
+    }
+    #coop-panel {
+      display: none;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding: var(--space-sm);
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: visible;
+    }
+    #coop-panel.visible {
+      display: flex;
+    }
+    .coop-user {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--space-xs);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .coop-user-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .coop-user-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .coop-user-name {
+      font-size: 10px;
+      font-weight: var(--font-medium);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .coop-user-timer {
+      font-size: 11px;
+      font-weight: var(--font-semibold);
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="timer-bar">
+      <button id="coop-toggle" title="Show co-op users">
+        <span id="coop-count">0</span>
+        <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      <div id="timer-display">00:00:00</div>
+      <div id="controls">
+        <div id="status-dot"></div>
+        <button id="close-btn" title="Close">
+          <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="image-container">
+      <img id="custom-image" alt="Timer">
+    </div>
+    <div id="coop-panel"></div>
+  </div>
+
+  <script>
+    // State
+    let timerSeconds = 0;
+    let isTracking = false;
+    let isPaused = true;
+    let customImage = '';
+    let coopPanelExpanded = false;
+    let roomCode = '';
+    let userId = '';
+    let roomUsers = {};
+
+    // DOM elements
+    const timerDisplay = document.getElementById('timer-display');
+    const statusDot = document.getElementById('status-dot');
+    const closeBtn = document.getElementById('close-btn');
+    const imageContainer = document.getElementById('image-container');
+    const customImageEl = document.getElementById('custom-image');
+    const coopToggle = document.getElementById('coop-toggle');
+    const coopCount = document.getElementById('coop-count');
+    const coopPanel = document.getElementById('coop-panel');
+
+    // Format time helper
+    function formatTime(seconds) {
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Update UI
+    function updateTimerDisplay() {
+      timerDisplay.textContent = formatTime(timerSeconds);
+      const timerColor = (!isPaused && isTracking) ? '#aafbfb' : '#f59e0b';
+      timerDisplay.style.color = timerColor;
+    }
+
+    function updateStatusDot() {
+      if (isTracking && !isPaused) {
+        statusDot.style.backgroundColor = '#22d3ee'; // cyan-400
+      } else if (isTracking && isPaused) {
+        statusDot.style.backgroundColor = '#71717a'; // zinc-500
+      } else {
+        statusDot.style.backgroundColor = '#52525b'; // zinc-600
+      }
+    }
+
+    function updateCustomImage() {
+      if (customImage) {
+        customImageEl.src = customImage;
+        imageContainer.classList.add('visible');
+      } else {
+        imageContainer.classList.remove('visible');
+      }
+    }
+
+    // Generate pastel color from userId
+    function generatePastelColor(userId) {
+      let hash = 0;
+      for (let i = 0; i < userId.length; i++) {
+        hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const hue = Math.abs(hash) % 360;
+      return `hsl(${hue}, 70%, 65%)`;
+    }
+
+    // Calculate elapsed seconds for a user
+    function calculateElapsedSeconds(userData) {
+      if (!userData) return 0;
+      const base = userData.baseSeconds || 0;
+      if (!userData.timerRunning || userData.timerPaused) return base;
+      const elapsed = Math.floor((Date.now() - (userData.startedAt || Date.now())) / 1000);
+      return base + elapsed;
+    }
+
+    // Get status dot color
+    function getStatusDotColor(userData) {
+      if (!userData.timerRunning) return '#52525b'; // stopped
+      if (userData.timerPaused) return '#71717a'; // paused
+      return '#22d3ee'; // active
+    }
+
+    // Get timer text color
+    function getTimerColor(userData) {
+      if (!userData.timerRunning) return '#f59e0b'; // stopped
+      if (userData.timerPaused) return '#f59e0b'; // paused
+      return '#aafbfb'; // active
+    }
+
+    // Update co-op panel
+    function updateCoopPanel() {
+      // Filter out current user and count others
+      const otherUsers = Object.entries(roomUsers).filter(([id]) => id !== userId);
+      const otherUserCount = otherUsers.length;
+
+      // Always show toggle button
+      coopToggle.classList.add('visible');
+      coopCount.textContent = otherUserCount;
+
+      // Update panel content if expanded
+      if (coopPanelExpanded) {
+        // Sort by elapsed time
+        const sortedUsers = otherUsers
+          .map(([id, data]) => ({
+            id,
+            ...data,
+            elapsedSeconds: calculateElapsedSeconds(data)
+          }))
+          .sort((a, b) => b.elapsedSeconds - a.elapsedSeconds);
+
+        // Render users
+        if (sortedUsers.length === 0) {
+          coopPanel.innerHTML = '<div style="padding: 8px; text-align: center; color: #71717a; font-size: 10px;">No other users</div>';
+        } else {
+          coopPanel.innerHTML = sortedUsers.map(user => {
+            const userColor = generatePastelColor(user.id);
+            const dotColor = getStatusDotColor(user);
+            const timerColor = getTimerColor(user);
+
+            return `
+              <div class="coop-user">
+                <div class="coop-user-dot" style="background-color: ${dotColor}"></div>
+                <div class="coop-user-info">
+                  <div class="coop-user-name" style="color: ${userColor}">${user.name || 'Unknown'}</div>
+                </div>
+                <div class="coop-user-timer" style="color: ${timerColor}">${formatTime(user.elapsedSeconds)}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    // Calculate desired window height based on visible content
+    function calculateWindowHeight() {
+      const timerBarHeight = 40; // Fixed timer bar height
+      let imageHeight = 0;
+      let panelHeight = 0;
+
+      // Add image container height if visible
+      if (imageContainer.classList.contains('visible')) {
+        imageHeight = imageContainer.offsetHeight;
+      }
+
+      // Add panel height if visible
+      if (coopPanel.classList.contains('visible')) {
+        panelHeight = coopPanel.scrollHeight;
+      }
+
+      return timerBarHeight + imageHeight + panelHeight;
+    }
+
+    // Toggle co-op panel
+    function toggleCoopPanel() {
+      coopPanelExpanded = !coopPanelExpanded;
+      if (coopPanelExpanded) {
+        coopPanel.classList.add('visible');
+        coopToggle.classList.add('expanded');
+
+        // Update panel content first
+        updateCoopPanel();
+
+        // Wait for next frame to measure actual height
+        requestAnimationFrame(() => {
+          const newHeight = calculateWindowHeight();
+          console.log('[Toggle] Expanding - new height:', newHeight);
+          if (window.electronTimer && window.electronTimer.resizeMiniWindow) {
+            window.electronTimer.resizeMiniWindow(180, newHeight);
+          }
+        });
+      } else {
+        coopPanel.classList.remove('visible');
+        coopToggle.classList.remove('expanded');
+        updateCoopPanel();
+
+        // Wait for DOM to update before resizing
+        requestAnimationFrame(() => {
+          // Force a reflow to ensure display:none has taken effect
+          void coopPanel.offsetHeight;
+
+          const newHeight = calculateWindowHeight();
+          console.log('[Toggle] Collapsing - calculated height:', newHeight);
+          console.log('[Toggle] Panel visible?', coopPanel.classList.contains('visible'));
+          console.log('[Toggle] Image visible?', imageContainer.classList.contains('visible'));
+
+          if (window.electronTimer && window.electronTimer.resizeMiniWindow) {
+            window.electronTimer.resizeMiniWindow(180, newHeight);
+          }
+        });
+      }
+    }
+
+    // Event handlers
+    closeBtn.addEventListener('click', async () => {
+      await window.electronTimer.closeMiniWindow();
+    });
+
+    coopToggle.addEventListener('click', toggleCoopPanel);
+
+    // IPC listeners
+    window.electronTimer.onTimerUpdate((seconds) => {
+      timerSeconds = seconds;
+      updateTimerDisplay();
+    });
+
+    window.electronTimer.onTrackingStatus((status) => {
+      isTracking = status;
+      updateStatusDot();
+      updateTimerDisplay();
+    });
+
+    window.electronTimer.onTimerPausedStatus((paused) => {
+      isPaused = paused;
+      updateStatusDot();
+      updateTimerDisplay();
+    });
+
+    window.electronTimer.onTimerStoppedInactive(() => {
+      isTracking = false;
+      updateStatusDot();
+      updateTimerDisplay();
+    });
+
+    window.electronTimer.onCustomImageUpdate((imageData) => {
+      customImage = imageData;
+      updateCustomImage();
+    });
+
+    // Listen for coop room data updates from main process - SET UP EARLY
+    window.electronTimer.onCoopRoomDataUpdate((data) => {
+      roomCode = data.roomCode || '';
+      userId = data.userId || '';
+      updateCoopPanel();
+    });
+
+    // Listen for coop users updates from main process
+    window.electronTimer.onCoopUsersUpdate((users) => {
+      roomUsers = users || {};
+      updateCoopPanel();
+    });
+
+    // Update panel every second when expanded (for live timer counting)
+    setInterval(() => {
+      if (coopPanelExpanded) {
+        updateCoopPanel();
+      }
+    }, 1000);
+
+    // OLD Firebase code - no longer needed
+    async function initializeFirebase_OLD(code) {
+      console.log('[Mini] initializeFirebase called with code:', code);
+      console.log('[Mini] Firebase available:', typeof firebase !== 'undefined');
+
+      if (typeof firebase === 'undefined') {
+        console.error('[Mini] Firebase not loaded!');
+        return;
+      }
+
+      try {
+        if (!firebaseInitialized) {
+          console.log('[Mini] Initializing Firebase app...');
+          const firebaseConfig = {
+            apiKey: "AIzaSyDT1LJbjKZjrwmTbYm-eOONQbqCjF2fXAQ",
+            authDomain: "poppy-c8870.firebaseapp.com",
+            databaseURL: "https://poppy-c8870-default-rtdb.firebaseio.com",
+            projectId: "poppy-c8870",
+            storageBucket: "poppy-c8870.firebasestorage.app",
+            messagingSenderId: "869102503969",
+            appId: "1:869102503969:web:80a3e6c3e4a1eb7a3ac94d"
+          };
+
+          if (!firebase.apps || !firebase.apps.length) {
+            const app = firebase.initializeApp(firebaseConfig);
+            console.log('[Mini] Firebase app initialized:', app.name);
+          } else {
+            console.log('[Mini] Firebase app already exists');
+          }
+
+          console.log('[Mini] Signing in anonymously...');
+          const auth = firebase.auth();
+          await auth.signInAnonymously();
+          console.log('[Mini] Signed in, user ID:', auth.currentUser.uid);
+
+          console.log('[Mini] Getting database reference...');
+          const db = firebase.database();
+          console.log('[Mini] Database reference obtained:', db);
+
+          firebaseInitialized = true;
+
+          // Set up update interval once
+          updateInterval = setInterval(() => {
+            if (coopPanelExpanded) {
+              updateCoopPanel();
+            }
+          }, 1000);
+        }
+
+        // Detach previous listener if exists
+        if (currentRoomRef) {
+          currentRoomRef.off();
+        }
+
+        // Check Firebase connection
+        const connectedRef = firebase.database().ref('.info/connected');
+        connectedRef.on('value', (snap) => {
+          if (snap.val() === true) {
+            console.log('[Mini] Firebase connected!');
+          } else {
+            console.log('[Mini] Firebase disconnected');
+          }
+        });
+
+        // Listen to new room
+        currentRoomRef = firebase.database().ref(`rooms/${code}/users`);
+        console.log('[Mini] Firebase listening to:', `rooms/${code}/users`);
+        currentRoomRef.on('value', (snapshot) => {
+          const data = snapshot.val();
+          console.log('[Mini] Firebase snapshot received, raw data:', data);
+          roomUsers = data || {};
+          console.log('[Mini] Firebase data received:', roomUsers);
+          updateCoopPanel();
+        }, (error) => {
+          console.error('[Mini] Firebase read error:', error);
+        });
+      } catch (err) {
+        console.error('Firebase init error:', err);
+      }
+    }
+
+    // Initialize - batch all async calls
+    Promise.all([
+      window.electronTimer.getTimerSeconds(),
+      window.electronTimer.getTrackingStatus(),
+      window.electronTimer.getPausedStatus(),
+      window.electronTimer.getCustomImage(),
+      window.electronTimer.getCoopRoomData()
+    ]).then(([seconds, tracking, paused, imageData, coopData]) => {
+      timerSeconds = seconds;
+      isTracking = tracking;
+      isPaused = paused;
+      customImage = imageData || '';
+
+      updateTimerDisplay();
+      updateStatusDot();
+      updateCustomImage();
+
+      // Initialize co-op room data
+      if (coopData && coopData.roomCode && coopData.userId) {
+        roomCode = coopData.roomCode;
+        userId = coopData.userId;
+        updateCoopPanel();
+      }
+    });
+  </script>
+</body>
+</html>

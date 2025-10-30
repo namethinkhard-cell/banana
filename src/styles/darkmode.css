@@ -1,0 +1,105 @@
+/* Dark Mode Styles - Claude-inspired */
+
+/* DEVELOPER MODE: CSS Variables for easy color customization */
+:root {
+  --accent-color: #f59e0b; /* amber-500 */
+  --accent-rgb: 245, 158, 11;
+  --primary-bg-color: #2a2a2a;
+  --primary-bg-rgb: 42, 42, 42;
+  --font-color: #ffffe3;
+}
+
+/* Dark Mode Glass Panel */
+.dark-glass-panel {
+  background: rgba(var(--primary-bg-rgb), 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark Mode Text Colors */
+.dark-text-primary {
+  color: var(--font-color);
+}
+
+.dark-text-secondary {
+  color: #a8a8a8;
+}
+
+.dark-text-tertiary {
+  color: #808080;
+}
+
+/* Dark Mode Backgrounds */
+.dark-bg-primary {
+  background-color: #1e1e1e;
+}
+
+.dark-bg-secondary {
+  background-color: #2a2a2a;
+}
+
+.dark-bg-tertiary {
+  background-color: #333333;
+}
+
+/* Dark Mode Borders */
+.dark-border {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dark Mode Inputs */
+.dark-input {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--font-color);
+}
+
+.dark-input:focus {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent-color);
+}
+
+.dark-input::placeholder {
+  color: #808080;
+}
+
+/* Dark Mode Select Options */
+.dark-input option {
+  background-color: #2a2a2a;
+  color: var(--font-color);
+}
+
+/* Dark Mode Buttons */
+.dark-button {
+  background-color: transparent;
+  color: var(--font-color);
+  border: 1px solid transparent;
+}
+
+.dark-button:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Dark Mode Hover Effects */
+.dark-hover:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Dark Mode Scrollbar */
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.5);
+}
+
+/* Dark Mode Shadow */
+.dark-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}

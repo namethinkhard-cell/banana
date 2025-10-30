@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "WebFetch(domain:www.designspells.com)",
+      "Bash(dir:*)",
+      "WebSearch",
+      "Bash(del \"C:\\Users\\what\\Desktop\\banana\\coop-mini.html\")",
+      "Bash(del \"C:\\Users\\what\\Desktop\\banana\\.env\")",
+      "Bash(del \"C:\\Users\\what\\Desktop\\banana\\.gitignore\")",
+      "WebFetch(domain:www.chainlift.io)",
+      "WebFetch(domain:stripe.com)",
+      "Bash(npm install:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

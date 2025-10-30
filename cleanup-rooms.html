@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Cleanup Utility</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+      font-weight: 600;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-radius: 4px;
+    }
+    .log-info { color: #0066cc; }
+    .log-success { color: #00aa00; background: #e6ffe6; }
+    .log-warning { color: #cc6600; background: #fff4e6; }
+    .log-error { color: #cc0000; background: #ffe6e6; }
+    .warning-box {
+      background: #fff4e6;
+      border: 2px solid #ff9800;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    .warning-box strong {
+      color: #cc6600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧹 Room Cleanup Utility</h1>
+    <p>This tool will delete all rooms in your Firebase database <strong>except BATHROOM</strong>.</p>
+
+    <div class="warning-box">
+      <strong>⚠️ Warning:</strong> This action cannot be undone! All non-BATHROOM rooms and their data will be permanently deleted.
+    </div>
+
+    <button id="cleanupBtn" onclick="cleanupRooms()">
+      Clean Up All Rooms (Keep BATHROOM)
+    </button>
+
+    <div id="log" class="log" style="display: none;"></div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+  <!-- Firebase Config -->
+  <script src="src/utils/firebaseConfig.js"></script>
+
+  <script>
+    const logElement = document.getElementById('log');
+    const cleanupBtn = document.getElementById('cleanupBtn');
+
+    function addLog(message, type = 'info') {
+      logElement.style.display = 'block';
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logElement.appendChild(entry);
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    async function cleanupRooms() {
+      if (!confirm('Are you sure you want to delete all rooms except BATHROOM? This cannot be undone!')) {
+        return;
+      }
+
+      cleanupBtn.disabled = true;
+      logElement.innerHTML = '';
+      addLog('Starting cleanup...', 'info');
+
+      try {
+        // Initialize Firebase
+        addLog('Initializing Firebase...', 'info');
+        const firebaseApp = window.FirebaseConfig.initialize();
+
+        if (!firebaseApp) {
+          addLog('Failed to initialize Firebase!', 'error');
+          cleanupBtn.disabled = false;
+          return;
+        }
+
+        // Sign in anonymously
+        addLog('Authenticating...', 'info');
+        const auth = firebase.auth();
+        if (!auth.currentUser) {
+          await auth.signInAnonymously();
+        }
+        addLog('Authenticated successfully', 'success');
+
+        // Get database reference
+        const db = firebase.database();
+        const roomsRef = db.ref('rooms');
+
+        // Fetch all rooms
+        addLog('Fetching all rooms...', 'info');
+        const snapshot = await roomsRef.once('value');
+        const rooms = snapshot.val();
+
+        if (!rooms) {
+          addLog('No rooms found in database', 'warning');
+          cleanupBtn.disabled = false;
+          return;
+        }
+
+        const roomCodes = Object.keys(rooms);
+        addLog(`Found ${roomCodes.length} room(s)`, 'info');
+
+        let deletedCount = 0;
+        let keptCount = 0;
+
+        // Delete all rooms except BATHROOM
+        for (const roomCode of roomCodes) {
+          if (roomCode === 'BATHROOM') {
+            addLog(`Keeping room: ${roomCode} (permanent)`, 'warning');
+            keptCount++;
+
+            // Make sure BATHROOM has the permanent flag
+            await db.ref(`rooms/${roomCode}/metadata`).set({
+              permanent: true,
+              createdAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            addLog(`Marked BATHROOM as permanent`, 'success');
+          } else {
+            addLog(`Deleting room: ${roomCode}...`, 'info');
+            await db.ref(`rooms/${roomCode}`).remove();
+            addLog(`Deleted room: ${roomCode}`, 'success');
+            deletedCount++;
+          }
+        }
+
+        addLog('─────────────────────────────', 'info');
+        addLog(`✓ Cleanup complete!`, 'success');
+        addLog(`  Deleted: ${deletedCount} room(s)`, 'success');
+        addLog(`  Kept: ${keptCount} room(s)`, 'success');
+        addLog('─────────────────────────────', 'info');
+
+      } catch (error) {
+        addLog(`Error: ${error.message}`, 'error');
+        console.error('Cleanup error:', error);
+      } finally {
+        cleanupBtn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
